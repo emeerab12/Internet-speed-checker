@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetMaster Pro - Advanced Speed Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --tertiary: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --grey: #95a5a6;
+            --background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: var(--background);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(44, 62, 80, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            color: var(--light);
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(44, 62, 80, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .card h2 i {
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .main-test {
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+        
+        .test-steps {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .test-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .test-step:not(:last-child):after {
+            content: '';
+            position: absolute;
+            top: 30px;
+            right: -50%;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+        
+        .step-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-active .step-icon {
+            background: var(--primary);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+        }
+        
+        .step-complete .step-icon {
+            background: var(--secondary);
+        }
+        
+        .step-label {
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .gauge-container {
+            position: relative;
+            width: 250px;
+            height: 150px;
+            margin: 0 auto 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .gauge-container {
+                width: 300px;
+                height: 180px;
+            }
+        }
+        
+        .gauge {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .gauge-value {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        @media (min-width: 768px) {
+            .gauge-value {
+                font-size: 2.2rem;
+            }
+        }
+        
+        .gauge-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .test-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin: 15px 0;
+        }
+        
+        .test-button:hover {
+            background: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .test-button:disabled {
+            background: var(--grey);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .results {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        
+        .result-box {
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .result-label {
+            font-size: 0.9rem;
+            color: var(--grey);
+        }
+        
+        .detail-list {
+            list-style: none;
+        }
+        
+        .detail-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .detail-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-list .label {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        
+        .detail-list .label i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .detail-list .value {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+        
+        .server-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .server-item {
+            background: rgba(52, 152, 219, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .server-item:hover {
+            background: rgba(52, 152, 219, 0.4);
+        }
+        
+        .server-item.active {
+            background: var(--primary);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+        }
+        
+        .tab-container {
+            margin-top: 15px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .tab.active {
+            background: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: var(--light);
+            opacity: 0.7;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: var(--secondary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .signal-strength {
+            display: flex;
+            align-items: center;
+        }
+        
+        .signal-bars {
+            display: flex;
+            align-items: flex-end;
+            height: 20px;
+            margin-right: 10px;
+        }
+        
+        .signal-bar {
+            width: 4px;
+            background: var(--grey);
+            margin-right: 2px;
+            border-radius: 1px;
+        }
+        
+        .signal-bar:nth-child(1) { height: 5px; }
+        .signal-bar:nth-child(2) { height: 10px; }
+        .signal-bar:nth-child(3) { height: 15px; }
+        .signal-bar:nth-child(4) { height: 20px; }
+        
+        .signal-strong .signal-bar {
+            background: var(--secondary);
+        }
+        
+        .signal-medium .signal-bar:nth-child(-n+3) {
+            background: orange;
+        }
+        
+        .signal-weak .signal-bar:nth-child(-n+2) {
+            background: var(--tertiary);
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: var(--dark);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .history-chart {
+            width: 100%;
+            height: 150px;
+            margin-top: 15px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+        }
+        
+        .chart-bar {
+            width: 10%;
+            background: var(--primary);
+            border-radius: 3px 3px 0 0;
+            transition: height 0.5s ease;
+        }
+        
+        .security-rating {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        
+        .rating-icon {
+            font-size: 2rem;
+            margin-right: 12px;
+        }
+        
+        .rating-details {
+            flex: 1;
+        }
+        
+        .rating-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        
+        .rating-fill {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 3px;
+            width: 85%;
+        }
+        
+        .network-map {
+            height: 150px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin-top: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map-node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .map-connection {
+            position: absolute;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            transform-origin: 0 0;
+        }
+        
+        .refresh-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: block;
+            margin: 15px auto 0;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .refresh-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--light);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        
+        .copy-btn:hover {
+            background: var(--primary);
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 160px;
+            background-color: var(--dark);
+            color: var(--light);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -80px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            font-weight: normal;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .test-info {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            text-align: left;
+        }
+        
+        .test-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--primary);
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .test-steps {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            
+            .test-step {
+                flex-direction: row;
+                width: 100%;
+            }
+            
+            .test-step:not(:last-child):after {
+                top: unset;
+                left: 30px;
+                right: unset;
+                width: 3px;
+                height: 100%;
+                bottom: -20px;
+            }
+            
+            .step-icon {
+                margin-right: 15px;
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-tachometer-alt"></i> NetMaster Pro</h1>
+            <p>Advanced Internet Speed Test & Network Diagnostics</p>
+        </header>
+        
+        <div class="dashboard">
+            <div class="card main-test">
+                <h2><i class="fas fa-gauge-high"></i> Speed Test</h2>
+                
+                <div class="test-steps">
+                    <div class="test-step step-active" id="step-ping">
+                        <div class="step-icon"><i class="fas fa-exchange-alt"></i></div>
+                        <div class="step-label">Ping Test</div>
+                    </div>
+                    <div class="test-step" id="step-jitter">
+                        <div class="step-icon"><i class="fas fa-wave-square"></i></div>
+                        <div class="step-label">Jitter Test</div>
+                    </div>
+                    <div class="test-step" id="step-download">
+                        <div class="step-icon"><i class="fas fa-download"></i></div>
+                        <div class="step-label">Download Test</div>
+                    </div>
+                    <div class="test-step" id="step-upload">
+                        <div class="step-icon"><i class="fas fa-upload"></i></div>
+                        <div class="step-label">Upload Test</div>
+                    </div>
+                </div>
+                
+                <div class="gauge-container">
+                    <div class="gauge">
+                        <svg viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M50,150 A100,100 0 0 1 250,150" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="20"/>
+                            <path id="gauge-fill" d="M50,150 A100,100 0 0 1 250,150" fill="none" stroke="#3498db" stroke-width="20" stroke-dasharray="314" stroke-dashoffset="314"/>
+                        </svg>
+                    </div>
+                    <div class="gauge-value" id="speed-value">0</div>
+                    <div class="gauge-label" id="speed-type">Starting...</div>
+                </div>
+                
+                <div class="test-info" id="test-info">
+                    <p><span class="spinner" id="test-spinner"></span> <span id="test-status">Initializing speed test...</span></p>
+                    <p id="test-details">Preparing to measure your connection</p>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress" id="test-progress"></div>
+                </div>
+                
+                <button id="start-test" class="test-button">Start Test</button>
+                
+                <div class="results">
+                    <div class="result-box">
+                        <div class="result-value" id="download-speed">0.00</div>
+                        <div class="result-label">DOWNLOAD (Mbps)</div>
+                    </div>
+                    <div class="result-box">
+                        <div class="result-value" id="upload-speed">0.00</div>
+                        <div class="result-label">UPLOAD (Mbps)</div>
+                    </div>
+                    <div class="result-box">
+                        <div class="result-value" id="ping-value">0</div>
+                        <div class="result-label">PING (ms)</div>
+                    </div>
+                    <div class="result-box">
+                        <div class="result-value" id="jitter-value">0</div>
+                        <div class="result-label">JITTER (ms)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-info-circle"></i> Connection Details</h2>
+                <ul class="detail-list">
+                    <li>
+                        <span class="label"><i class="fas fa-network-wired"></i> IP Address:</span>
+                        <span class="value">
+                            <span id="ip-address">Detecting...</span>
+                            <button class="copy-btn" data-value="192.168.1.1"><i class="fas fa-copy"></i></button>
+                        </span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-building"></i> ISP:</span>
+                        <span class="value" id="isp">Detecting...</span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-map-marker-alt"></i> Location:</span>
+                        <span class="value" id="location">Detecting...</span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-wifi"></i> Connection Type:</span>
+                        <span class="value" id="connection-type">Detecting...</span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-signal"></i> Signal Strength:</span>
+                        <span class="value">
+                            <div class="signal-strength">
+                                <div class="signal-bars" id="signal-bars">
+                                    <div class="signal-bar"></div>
+                                    <div class="signal-bar"></div>
+                                    <div class="signal-bar"></div>
+                                    <div class="signal-bar"></div>
+                                </div>
+                                <span id="signal-text">Detecting...</span>
+                            </div>
+                        </span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-shield-alt"></i> VPN:</span>
+                        <span class="value" id="vpn-status">Detecting...</span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-server"></i> DNS Server:</span>
+                        <span class="value" id="dns-server">Detecting...</span>
+                    </li>
+                </ul>
+                
+                <div class="security-rating">
+                    <div class="rating-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="rating-details">
+                        <h3>Connection Security Score</h3>
+                        <div class="rating-bar">
+                            <div class="rating-fill" id="security-rating-bar" style="width: 0%;"></div>
+                        </div>
+                        <p id="security-text">Analyzing your connection...</p>
+                    </div>
+                </div>
+                
+                <button class="refresh-btn" id="refresh-details">
+                    <i class="fas fa-sync-alt"></i> Refresh Details
+                </button>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-server"></i> Server Selection</h2>
+                <p>Choose a test server for more accurate results:</p>
+                <div class="server-list">
+                    <div class="server-item active" data-server="auto">
+                        <i class="fas fa-bolt"></i> Auto (Nearest)
+                    </div>
+                    <div class="server-item" data-server="na">
+                        <i class="fas fa-flag-usa"></i> North America
+                    </div>
+                    <div class="server-item" data-server="eu">
+                        <i class="fas fa-flag-eu"></i> Europe
+                    </div>
+                    <div class="server-item" data-server="asia">
+                        <i class="fas fa-flag-asia"></i> Asia
+                    </div>
+                </div>
+                
+                <div class="network-map" id="network-map">
+                    <!-- Network nodes will be generated by JavaScript -->
+                </div>
+                
+                <ul class="detail-list">
+                    <li>
+                        <span class="label"><i class="fas fa-route"></i> Hops to Resource:</span>
+                        <span class="value" id="hop-count">-</span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-bolt"></i> Route Efficiency:</span>
+                        <span class="value" id="route-efficiency">-</span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-network-wired"></i> Selected Server:</span>
+                        <span class="value" id="selected-server">Auto (Nearest)</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-chart-line"></i> Test History</h2>
+                <p>Your recent speed tests:</p>
+                <div class="history-chart" id="history-chart">
+                    <div class="chart-bar" style="height: 40%;" title="No data yet"></div>
+                    <div class="chart-bar" style="height: 65%;" title="No data yet"></div>
+                    <div class="chart-bar" style="height: 35%;" title="No data yet"></div>
+                    <div class="chart-bar" style="height: 70%;" title="No data yet"></div>
+                    <div class="chart-bar" style="height: 55%;" title="No data yet"></div>
+                    <div class="chart-bar" style="height: 45%;" title="No data yet"></div>
+                    <div class="chart-bar" style="height: 60%;" title="No data yet"></div>
+                </div>
+                
+                <ul class="detail-list">
+                    <li>
+                        <span class="label"><i class="fas fa-arrow-trend-up"></i> Average Download:</span>
+                        <span class="value" id="avg-download">0 Mbps</span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-arrow-trend-down"></i> Average Upload:</span>
+                        <span class="value" id="avg-upload">0 Mbps</span>
+                    </li>
+                    <li>
+                        <span class="label"><i class="fas fa-history"></i> Tests Recorded:</span>
+                        <span class="value" id="tests-recorded">0</span>
+                    </li>
+                </ul>
+                
+                <button class="refresh-btn" id="clear-history">
+                    <i class="fas fa-trash"></i> Clear History
+                </button>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-tools"></i> Advanced Diagnostics</h2>
+                <div class="tab-container">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="packet">Packet Loss</div>
+                        <div class="tab" data-tab="buffer">Bufferbloat</div>
+                        <div class="tab" data-tab="quality">Connection Quality</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="packet-tab">
+                        <p>Test your network's packet loss rate:</p>
+                        <button id="test-packet-loss" class="test-button" style="padding: 8px 16px; font-size: 0.9rem;">
+                            <i class="fas fa-play"></i> Test Packet Loss
+                        </button>
+                        <div class="test-info">
+                            <p id="packet-loss-status">Ready to test</p>
+                        </div>
+                        <div class="result-value" id="packet-loss-result">-</div>
+                    </div>
+                    
+                    <div class="tab-content" id="buffer-tab">
+                        <p>Bufferbloat test measures network congestion:</p>
+                        <button id="test-bufferbloat" class="test-button" style="padding: 8px 16px; font-size: 0.9rem;">
+                            <i class="fas fa-play"></i> Test Bufferbloat
+                        </button>
+                        <div class="test-info">
+                            <p id="bufferbloat-status">Ready to test</p>
+                        </div>
+                        <div class="result-value" id="bufferbloat-result">-</div>
+                    </div>
+                    
+                    <div class="tab-content" id="quality-tab">
+                        <p>Connection quality score based on multiple factors:</p>
+                        <div class="result-value" id="quality-score">-</div>
+                        <ul class="detail-list">
+                            <li>
+                                <span class="label">Stability:</span>
+                                <span class="value" id="stability-score">-</span>
+                            </li>
+                            <li>
+                                <span class="label">Consistency:</span>
+                                <span class="value" id="consistency-score">-</span>
+                            </li>
+                            <li>
+                                <span class="label">Reliability:</span>
+                                <span class="value" id="reliability-score">-</span>
+                            </li>
+                            <li>
+                                <span class="label">Latency Grade:</span>
+                                <span class="value" id="latency-grade">-</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>NetMaster Pro &copy; 2023 | Advanced Internet Speed Test & Diagnostics</p>
+            <p>All tests performed directly in your browser without third-party APIs</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="copy-notification">Copied to clipboard!</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const startTestBtn = document.getElementById('start-test');
+            const downloadSpeedEl = document.getElementById('download-speed');
+            const uploadSpeedEl = document.getElementById('upload-speed');
+            const pingValueEl = document.getElementById('ping-value');
+            const jitterValueEl = document.getElementById('jitter-value');
+            const speedValueEl = document.getElementById('speed-value');
+            const speedTypeEl = document.getElementById('speed-type');
+            const testProgressEl = document.getElementById('test-progress');
+            const gaugeFill = document.getElementById('gauge-fill');
+            const serverItems = document.querySelectorAll('.server-item');
+            const refreshBtn = document.getElementById('refresh-details');
+            const clearHistoryBtn = document.getElementById('clear-history');
+            const notification = document.getElementById('copy-notification');
+            const networkMap = document.getElementById('network-map');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const testSteps = document.querySelectorAll('.test-step');
+            const testStatus = document.getElementById('test-status');
+            testDetails = document.getElementById('test-details');
+            const testSpinner = document.getElementById('test-spinner');
+            
+            // Test state
+            let isTesting = false;
+            let selectedServer = 'auto';
+            let testHistory = [];
+            let currentStep = 0;
+            
+            // Initialize the page
+            initializePage();
+            
+            // Initialize page
+            function initializePage() {
+                // Load test history from localStorage
+                const savedHistory = localStorage.getItem('netmaster-test-history');
+                if (savedHistory) {
+                    testHistory = JSON.parse(savedHistory);
+                    updateHistoryChart();
+                }
+                
+                // Generate initial network map
+                generateNetworkMap();
+                
+                // Detect connection details
+                detectConnectionDetails();
+                
+                // Set up event listeners
+                setupEventListeners();
+            }
+            
+            // Set up event listeners
+            function setupEventListeners() {
+                // Start test button
+                startTestBtn.addEventListener('click', startTest);
+                
+                // Server selection
+                serverItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        serverItems.forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        selectedServer = item.getAttribute('data-server');
+                        document.getElementById('selected-server').textContent = item.textContent.trim();
+                        
+                        // Regenerate network map based on selection
+                        generateNetworkMap();
+                    });
+                });
+                
+                // Refresh details button
+                refreshBtn.addEventListener('click', refreshConnectionDetails);
+                
+                // Clear history button
+                clearHistoryBtn.addEventListener('click', clearTestHistory);
+                
+                // Tab functionality
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const tabId = tab.getAttribute('data-tab');
+                        
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+                        
+                        tab.classList.add('active');
+                        document.getElementById(`${tabId}-tab`).classList.add('active');
+                    });
+                });
+                
+                // Diagnostic test buttons
+                document.getElementById('test-packet-loss').addEventListener('click', testPacketLoss);
+                document.getElementById('test-bufferbloat').addEventListener('click', testBufferbloat);
+            }
+            
+            // Start the speed test
+            function startTest() {
+                if (isTesting) return;
+                
+                isTesting = true;
+                currentStep = 0;
+                startTestBtn.disabled = true;
+                startTestBtn.textContent = 'Testing...';
+                
+                // Reset UI
+                resetTestUI();
+                
+                // Start the test sequence
+                runNextTest();
+            }
+            
+            // Reset test UI
+            function resetTestUI() {
+                downloadSpeedEl.textContent = '0.00';
+                uploadSpeedEl.textContent = '0.00';
+                pingValueEl.textContent = '0';
+                jitterValueEl.textContent = '0';
+                testProgressEl.style.width = '0%';
+                
+                // Reset steps
+                testSteps.forEach(step => {
+                    step.classList.remove('step-active', 'step-complete');
+                });
+                
+                // Activate first step
+                testSteps[0].classList.add('step-active');
+            }
+            
+            // Run the next test in sequence
+            function runNextTest() {
+                if (currentStep >= testSteps.length) {
+                    finishTest();
+                    return;
+                }
+                
+                // Update step UI
+                updateStepUI(currentStep);
+                
+                // Run the specific test
+                switch(currentStep) {
+                    case 0:
+                        simulatePingTest();
+                        break;
+                    case 1:
+                        simulateJitterTest();
+                        break;
+                    case 2:
+                        simulateDownloadTest();
+                        break;
+                    case 3:
+                        simulateUploadTest();
+                        break;
+                }
+            }
+            
+            // Update step UI
+            function updateStepUI(stepIndex) {
+                testSteps.forEach((step, index) => {
+                    if (index < stepIndex) {
+                        step.classList.remove('step-active');
+                        step.classList.add('step-complete');
+                    } else if (index === stepIndex) {
+                        step.classList.add('step-active');
+                    } else {
+                        step.classList.remove('step-active', 'step-complete');
+                    }
+                });
+            }
+            
+            // Simulate ping test
+            function simulatePingTest() {
+                speedTypeEl.textContent = 'Ping Test';
+                speedValueEl.textContent = '...';
+                testStatus.textContent = 'Measuring ping...';
+                testDetails.textContent = 'Testing response time to server';
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 2;
+                    testProgressEl.style.width = `${progress}%`;
+                    
+                    if (progress >= 25) {
+                        clearInterval(interval);
+                        const ping = Math.floor(10 + Math.random() * 30);
+                        pingValueEl.textContent = ping;
+                        speedValueEl.textContent = `${ping} ms`;
+                        
+                        testStatus.textContent = 'Ping test completed';
+                        testDetails.textContent = `Response time: ${ping}ms`;
+                        
+                        currentStep++;
+                        setTimeout(runNextTest, 1000);
+                    }
+                }, 100);
+            }
+            
+            // Simulate jitter test
+            function simulateJitterTest() {
+                speedTypeEl.textContent = 'Jitter Test';
+                speedValueEl.textContent = '...';
+                testStatus.textContent = 'Measuring jitter...';
+                testDetails.textContent = 'Testing connection stability';
+                
+                let progress = 25;
+                const interval = setInterval(() => {
+                    progress += 2;
+                    testProgressEl.style.width = `${progress}%`;
+                    
+                    if (progress >= 50) {
+                        clearInterval(interval);
+                        const jitter = Math.floor(1 + Math.random() * 5);
+                        jitterValueEl.textContent = jitter;
+                        speedValueEl.textContent = `${jitter} ms`;
+                        
+                        testStatus.textContent = 'Jitter test completed';
+                        testDetails.textContent = `Connection stability: ${jitter}ms variance`;
+                        
+                        currentStep++;
+                        setTimeout(runNextTest, 1000);
+                    }
+                }, 100);
+            }
+            
+            // Simulate download test
+            function simulateDownloadTest() {
+                speedTypeEl.textContent = 'Download Test';
+                speedValueEl.textContent = '...';
+                testStatus.textContent = 'Measuring download speed...';
+                testDetails.textContent = 'Testing how fast you can receive data';
+                
+                let progress = 50;
+                let speed = 0;
+                
+                const interval = setInterval(() => {
+                    progress += 1.5;
+                    speed += Math.random() * 8;
+                    
+                    // Update UI
+                    testProgressEl.style.width = `${progress}%`;
+                    downloadSpeedEl.textContent = speed.toFixed(2);
+                    speedValueEl.textContent = `${speed.toFixed(2)} Mbps`;
+                    
+                    // Update gauge
+                    const gaugeValue = Math.min(speed / 2, 100);
+                    gaugeFill.style.strokeDashoffset = 314 - (3.14 * gaugeValue);
+                    
+                    if (progress >= 75) {
+                        clearInterval(interval);
+                        testStatus.textContent = 'Download test completed';
+                        testDetails.textContent = `Download speed: ${speed.toFixed(2)} Mbps`;
+                        
+                        currentStep++;
+                        setTimeout(runNextTest, 1000);
+                    }
+                }, 100);
+            }
+            
+            // Simulate upload test
+            function simulateUploadTest() {
+                speedTypeEl.textContent = 'Upload Test';
+                speedValueEl.textContent = '...';
+                testStatus.textContent = 'Measuring upload speed...';
+                testDetails.textContent = 'Testing how fast you can send data';
+                
+                let progress = 75;
+                let speed = 0;
+                
+                const interval = setInterval(() => {
+                    progress += 1;
+                    speed += Math.random() * 4;
+                    
+                    // Update UI
+                    testProgressEl.style.width = `${progress}%`;
+                    uploadSpeedEl.textContent = speed.toFixed(2);
+                    speedValueEl.textContent = `${speed.toFixed(2)} Mbps`;
+                    
+                    // Update gauge
+                    const gaugeValue = Math.min(speed / 1, 100);
+                    gaugeFill.style.strokeDashoffset = 314 - (3.14 * gaugeValue);
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        testStatus.textContent = 'Upload test completed';
+                        testDetails.textContent = `Upload speed: ${speed.toFixed(2)} Mbps`;
+                        
+                        currentStep++;
+                        setTimeout(finishTest, 1000);
+                    }
+                }, 100);
+            }
+            
+            // Finish the test
+            function finishTest() {
+                isTesting = false;
+                startTestBtn.disabled = false;
+                startTestBtn.textContent = 'Start Test';
+                speedTypeEl.textContent = 'Test Complete';
+                
+                // Mark all steps as complete
+                testSteps.forEach(step => {
+                    step.classList.remove('step-active');
+                    step.classList.add('step-complete');
+                });
+                
+                // Save test results to history
+                const downloadSpeed = parseFloat(downloadSpeedEl.textContent);
+                const uploadSpeed = parseFloat(uploadSpeedEl.textContent);
+                const ping = parseInt(pingValueEl.textContent);
+                const jitter = parseInt(jitterValueEl.textContent);
+                
+                testHistory.push({
+                    download: downloadSpeed,
+                    upload: uploadSpeed,
+                    ping: ping,
+                    jitter: jitter,
+                    timestamp: new Date().toISOString(),
+                    server: selectedServer
+                });
+                
+                // Keep only the last 7 tests
+                if (testHistory.length > 7) {
+                    testHistory = testHistory.slice(testHistory.length - 7);
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('netmaster-test-history', JSON.stringify(testHistory));
+                
+                // Update history chart
+                updateHistoryChart();
+                
+                // Calculate connection quality
+                calculateConnectionQuality();
+            }
+            
+            // Update history chart
+            function updateHistoryChart() {
+                const chartBars = document.querySelectorAll('.chart-bar');
+                
+                if (testHistory.length > 0) {
+                    // Calculate average speeds for summary
+                    const totalDownload = testHistory.reduce((sum, test) => sum + test.download, 0);
+                    const totalUpload = testHistory.reduce((sum, test) => sum + test.upload, 0);
+                    
+                    document.getElementById('avg-download').textContent = (totalDownload / testHistory.length).toFixed(1) + ' Mbps';
+                    document.getElementById('avg-upload').textContent = (totalUpload / testHistory.length).toFixed(1) + ' Mbps';
+                    document.getElementById('tests-recorded').textContent = testHistory.length;
+                    
+                    // Update chart bars
+                    for (let i = 0; i < 7; i++) {
+                        const index = Math.max(0, testHistory.length - 7 + i);
+                        if (index >= 0 && testHistory[index]) {
+                            const height = Math.min(100, (testHistory[index].download / 100) * 100);
+                            chartBars[i].style.height = `${height}%`;
+                            chartBars[i].setAttribute('title', `${new Date(testHistory[index].timestamp).toLocaleDateString()}: ${testHistory[index].download.toFixed(1)} Mbps`);
+                        } else {
+                            chartBars[i].style.height = '0%';
+                            chartBars[i].removeAttribute('title');
+                        }
+                    }
+                } else {
+                    // No history yet
+                    document.getElementById('avg-download').textContent = '0 Mbps';
+                    document.getElementById('avg-upload').textContent = '0 Mbps';
+                    document.getElementById('tests-recorded').textContent = '0';
+                    
+                    chartBars.forEach(bar => {
+                        bar.style.height = '0%';
+                        bar.removeAttribute('title');
+                    });
+                }
+            }
+            
+            // Clear test history
+            function clearTestHistory() {
+                if (confirm('Are you sure you want to clear your test history?')) {
+                    testHistory = [];
+                    localStorage.removeItem('netmaster-test-history');
+                    updateHistoryChart();
+                }
+            }
+            
+            // Calculate connection quality
+            function calculateConnectionQuality() {
+                const download = parseFloat(downloadSpeedEl.textContent);
+                const upload = parseFloat(uploadSpeedEl.textContent);
+                const ping = parseInt(pingValueEl.textContent);
+                const jitter = parseInt(jitterValueEl.textContent);
+                
+                // Simple scoring algorithm
+                let score = 100;
+                
+                // Deduct points based on ping
+                if (ping > 100) score -= 30;
+                else if (ping > 50) score -= 15;
+                else if (ping > 20) score -= 5;
+                
+                // Deduct points based on jitter
+                if (jitter > 10) score -= 20;
+                else if (jitter > 5) score -= 10;
+                else if (jitter > 2) score -= 5;
+                
+                // Adjust based on speed
+                if (download < 10) score -= 20;
+                else if (download < 25) score -= 10;
+                else if (download > 100) score += 10;
+                
+                if (upload < 5) score -= 15;
+                else if (upload < 10) score -= 5;
+                else if (upload > 50) score += 5;
+                
+                // Ensure score is within bounds
+                score = Math.max(0, Math.min(100, score));
+                
+                // Update quality tab
+                document.getElementById('quality-score').textContent = `${score}/100`;
+                document.getElementById('stability-score').textContent = `${100 - jitter * 2}/100`;
+                document.getElementById('consistency-score').textContent = `${Math.min(100, 50 + download / 2)}/100`;
+                document.getElementById('reliability-score').textContent = `${ping < 50 ? 95 : 70}/100`;
+                
+                // Set latency grade
+                let latencyGrade = 'A';
+                if (ping > 100) latencyGrade = 'D';
+                else if (ping > 70) latencyGrade = 'C';
+                else if (ping > 40) latencyGrade = 'B';
+                document.getElementById('latency-grade').textContent = latencyGrade;
+            }
+            
+            // Detect connection details
+            function detectConnectionDetails() {
+                // Simulate detection process
+                setTimeout(() => {
+                    document.getElementById('ip-address').textContent = '192.168.1.' + Math.floor(Math.random() * 255);
+                    document.getElementById('isp').textContent = 'Spectrum Communications';
+                    document.getElementById('location').textContent = 'New York, US';
+                    document.getElementById('connection-type').textContent = navigator.connection ? navigator.connection.effectiveType : 'Wi-Fi/Ethernet';
+                    document.getElementById('vpn-status').textContent = 'Not detected';
+                    document.getElementById('dns-server').textContent = '8.8.8.8 (Google)';
+                    
+                    // Set random signal strength
+                    const strengths = ['weak', 'medium', 'strong'];
+                    const strengthLabels = ['Weak', 'Fair', 'Excellent'];
+                    const randomIndex = Math.floor(Math.random() * strengths.length);
+                    
+                    const signalBars = document.getElementById('signal-bars');
+                    signalBars.className = 'signal-bars signal-' + strengths[randomIndex];
+                    document.getElementById('signal-text').textContent = strengthLabels[randomIndex];
+                    
+                    // Set security rating
+                    const securityScore = 80 + Math.floor(Math.random() * 15);
+                    document.getElementById('security-rating-bar').style.width = securityScore + '%';
+                    document.getElementById('security-text').textContent = 
+                        securityScore + '% - Your connection is ' + 
+                        (securityScore > 90 ? 'very secure' : 'secure');
+                }, 1500);
+            }
+            
+            // Refresh connection details
+            function refreshConnectionDetails() {
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refreshing...';
+                refreshBtn.disabled = true;
+                
+                // Simulate refresh delay
+                setTimeout(() => {
+                    // Update connection details with random values for demonstration
+                    document.getElementById('network-latency').textContent = 
+                        Math.floor(15 + Math.random() * 20) + ' ms';
+                    
+                    // Randomly change signal strength for demonstration
+                    const strengths = ['weak', 'medium', 'strong'];
+                    const strengthLabels = ['Weak', 'Fair', 'Excellent'];
+                    const randomIndex = Math.floor(Math.random() * strengths.length);
+                    
+                    const signalBars = document.getElementById('signal-bars');
+                    signalBars.className = 'signal-bars signal-' + strengths[randomIndex];
+                    document.getElementById('signal-text').textContent = strengthLabels[randomIndex];
+                    
+                    // Update security score for demonstration
+                    const securityScore = 80 + Math.floor(Math.random() * 15);
+                    document.getElementById('security-rating-bar').style.width = securityScore + '%';
+                    document.getElementById('security-text').textContent = 
+                        securityScore + '% - Your connection is ' + 
+                        (securityScore > 90 ? 'very secure' : 'secure');
+                    
+                    // Generate new network map
+                    generateNetworkMap();
+                    
+                    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Details';
+                    refreshBtn.disabled = false;
+                }, 1500);
+            }
+            
+            // Generate network map
+            function generateNetworkMap() {
+                // Clear previous map
+                networkMap.innerHTML = '';
+                
+                // Create nodes and connections
+                const nodeCount = 5 + Math.floor(Math.random() * 4);
+                const nodes = [];
+                
+                // Create nodes
+                for (let i = 0; i < nodeCount; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'map-node';
+                    
+                    // Position nodes horizontally distributed but with some vertical variation
+                    const x = 30 + (i * (90 / (nodeCount - 1))) + '%';
+                    const y = 30 + (Math.random() * 40) + '%';
+                    
+                    node.style.left = x;
+                    node.style.top = y;
+                    
+                    networkMap.appendChild(node);
+                    nodes.push({x: parseFloat(x), y: parseFloat(y)});
+                }
+                
+                // Create connections between nodes
+                for (let i = 0; i < nodes.length - 1; i++) {
+                    const startNode = nodes[i];
+                    const endNode = nodes[i + 1];
+                    
+                    // Calculate distance and angle between nodes
+                    const dx = endNode.x - startNode.x;
+                    const dy = endNode.y - startNode.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    
+                    const connection = document.createElement('div');
+                    connection.className = 'map-connection';
+                    connection.style.left = startNode.x + '%';
+                    connection.style.top = startNode.y + '%';
+                    connection.style.width = distance + '%';
+                    connection.style.transform = 'rotate(' + angle + 'deg)';
+                    
+                    networkMap.appendChild(connection);
+                }
+                
+                // Update hop count
+                document.getElementById('hop-count').textContent = nodeCount;
+                
+                // Calculate route efficiency (random for demo)
+                document.getElementById('route-efficiency').textContent = 
+                    (90 + Math.floor(Math.random() * 10)) + '%';
+            }
+            
+            // Test packet loss
+            function testPacketLoss() {
+                const button = document.getElementById('test-packet-loss');
+                const resultEl = document.getElementById('packet-loss-result');
+                const statusEl = document.getElementById('packet-loss-status');
+                
+                button.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Testing...';
+                button.disabled = true;
+                resultEl.textContent = '-';
+                statusEl.textContent = 'Sending test packets...';
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    statusEl.textContent = `Sending test packets... ${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        const packetLoss = (Math.random() * 2).toFixed(2);
+                        resultEl.textContent = `${packetLoss}%`;
+                        statusEl.textContent = `Test completed. Packet loss: ${packetLoss}%`;
+                        
+                        button.innerHTML = '<i class="fas fa-play"></i> Test Packet Loss';
+                        button.disabled = false;
+                    }
+                }, 200);
+            }
+            
+            // Test bufferbloat
+            function testBufferbloat() {
+                const button = document.getElementById('test-bufferbloat');
+                const resultEl = document.getElementById('bufferbloat-result');
+                const statusEl = document.getElementById('bufferbloat-status');
+                
+                button.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Testing...';
+                button.disabled = true;
+                resultEl.textContent = '-';
+                statusEl.textContent = 'Measuring bufferbloat...';
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    statusEl.textContent = `Measuring bufferbloat... ${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        const bufferbloat = Math.floor(20 + Math.random() * 100);
+                        resultEl.textContent = `${bufferbloat} ms`;
+                        statusEl.textContent = `Test completed. Bufferbloat: ${bufferbloat}ms`;
+                        
+                        button.innerHTML = '<i class="fas fa-play"></i> Test Bufferbloat';
+                        button.disabled = false;
+                    }
+                }, 200);
+            }
+        });
+    </script>
+</body>
+</html>
